@@ -7,6 +7,7 @@ import {
   Patch,
   Param,
   Delete,
+  NotFoundException,
 } from '@nestjs/common';
 import { BuyerService } from './buyer.service';
 import { CreateBuyerDto } from './dto/create-buyer.dto';
@@ -40,8 +41,13 @@ export class BuyerController {
     return this.buyerService.update(id, updateBuyerDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.buyerService.remove(id);
+  @Delete('/delete/:id')
+  async remove(@Param('id') buyerID: string) {
+    const destroyBuyer = await this.buyerService.remove(+buyerID);
+    console.log(destroyBuyer);
+    if (destroyBuyer === 0) {
+      throw new NotFoundException('No buyer to remove!');
+    }
+    return { message: 'Buyer account successfully deleted!' };
   }
 }
