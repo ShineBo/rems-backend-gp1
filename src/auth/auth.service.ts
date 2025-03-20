@@ -31,12 +31,20 @@ export class AuthService {
   }
 
   async validateDealer(email: string, password: string): Promise<any> {
+    console.log(`🔍 Searching dealer with email: ${email}`);
     const dealer = await this.dealerService.findByEmail(email);
+    console.log('Dealer found:', dealer ? 'yes' : 'no');
+
     if (!dealer) {
       return null;
     }
 
+    console.log(`🔑 Stored password hash: ${dealer.password}`);
+    console.log(`🔑 Input password: ${password}`);
+
     const isPasswordValid = await bcrypt.compare(password, dealer.password);
+    console.log('Password valid:', isPasswordValid);
+
     if (!isPasswordValid) {
       return null;
     }
@@ -53,14 +61,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials - user not found');
     }
 
-    // Debug password comparison
-    console.log(
-      'Comparing passwords:',
+    // Compare password with hashed password in DB
+    console.log('Comparing passwords...');
+    const isPasswordValid = await bcrypt.compare(
       loginDto.password,
-      'vs',
       buyer.password,
     );
-    const isPasswordValid = loginDto.password === buyer.password;
     console.log('Password valid:', isPasswordValid);
 
     if (!isPasswordValid) {
