@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Dealer } from './entities/dealer.entity';
 import { CreateDealerDto } from './dto/create-dealer.dto';
@@ -15,9 +19,26 @@ export class DealerService {
 
   async create(createDealerDto: CreateDealerDto): Promise<Dealer> {
     // Hash the password before storing it
+    const checkEmail = await this.dealerModel.findOne({
+      where: { email: createDealerDto.email },
+    });
+    if (checkEmail) {
+      throw new BadRequestException(
+        'This email is already in use! Please use another.',
+      );
+    }
+    const checkPhone = await this.dealerModel.findOne({
+      where: { phoneNumber: createDealerDto.phoneNumber },
+    });
+    if (checkPhone) {
+      throw new BadRequestException(
+        'This phone number is already in use! Please use another.',
+      );
+    }
+
     if (createDealerDto.password) {
-      const hashedpswrd = await bcrypt.hash(createDealerDto.password, 10);
-      createDealerDto.password = hashedpswrd;
+      // eslint-disable-next-line prettier/prettier
+      createDealerDto.password = await bcrypt.hash(createDealerDto.password, 10);;
     }
 
     // Process profile photo if it's a string
