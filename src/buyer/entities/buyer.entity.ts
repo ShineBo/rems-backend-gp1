@@ -1,17 +1,17 @@
-// src/buyer/entities/buyer.entity.ts
-import { Column, Table, Model, DataType } from 'sequelize-typescript';
+import { Column, Table, Model, DataType, AutoIncrement, PrimaryKey } from 'sequelize-typescript';
 
 @Table({
   tableName: 'buyers',
   timestamps: true,
 })
 export class Buyer extends Model {
+  @PrimaryKey
+  @AutoIncrement
   @Column({
-    type: DataType.STRING(50),
-    primaryKey: true,
-    unique: true,
+    type: DataType.INTEGER,
+    allowNull: false,
   })
-  buyerID: string;
+  buyerID: number;
 
   @Column({
     type: DataType.STRING(100),
@@ -40,7 +40,7 @@ export class Buyer extends Model {
 
   @Column({
     type: DataType.BLOB,
-    allowNull: false,
+    allowNull: true, // Optional
   })
   profilePhoto: Buffer;
 }

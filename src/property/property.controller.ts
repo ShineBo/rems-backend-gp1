@@ -33,7 +33,7 @@ export class PropertyController {
   }
 
   @Get('dealer/:dealerId')
-  findByDealer(@Param('dealerId') dealerId: string): Promise<Property[]> {
+  findByDealer(@Param('dealerId') dealerId: number): Promise<Property[]> {
     return this.propertyService.findByDealer(dealerId);
   }
 

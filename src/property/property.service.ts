@@ -40,7 +40,7 @@ export class PropertyService {
     return property;
   }
 
-  async findByDealer(dealerID: string): Promise<Property[]> {
+  async findByDealer(dealerID: number): Promise<Property[]> {
     return this.propertyModel.findAll({
       where: { dealerID },
     });

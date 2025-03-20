@@ -1,4 +1,3 @@
-// src/property/entities/property.entity.ts
 import {
   Column,
   Table,
@@ -6,6 +5,8 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
+  AutoIncrement,
+  PrimaryKey,
 } from 'sequelize-typescript';
 import { Dealer } from '../../dealer/entities/dealer.entity';
 
@@ -14,12 +15,13 @@ import { Dealer } from '../../dealer/entities/dealer.entity';
   timestamps: true,
 })
 export class Property extends Model {
+  @PrimaryKey
+  @AutoIncrement
   @Column({
-    type: DataType.STRING(50),
-    primaryKey: true,
-    unique: true,
+    type: DataType.INTEGER,
+    allowNull: false,
   })
-  propertyID: string;
+  propertyID: number;
 
   @Column({
     type: DataType.STRING(150),
@@ -63,24 +65,12 @@ export class Property extends Model {
   })
   status: string;
 
-  @Column({
-    type: DataType.STRING(50),
-    allowNull: false,
-  })
-  dealerInfo: string;
-
-  @Column({
-    type: DataType.STRING(50),
-    allowNull: false,
-  })
-  contactInfo: string;
-
   @ForeignKey(() => Dealer)
   @Column({
-    type: DataType.STRING(50),
+    type: DataType.INTEGER,
     allowNull: false,
   })
-  dealerID: string;
+  dealerID: number;
 
   @BelongsTo(() => Dealer)
   dealer: Dealer;

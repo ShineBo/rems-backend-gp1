@@ -1,5 +1,12 @@
-// src/dealer/entities/dealer.entity.ts
-import { Column, Table, Model, DataType, HasMany } from 'sequelize-typescript';
+import {
+  Column,
+  Table,
+  Model,
+  DataType,
+  HasMany,
+  PrimaryKey,
+  AutoIncrement,
+} from 'sequelize-typescript';
 import { Property } from '../../property/entities/property.entity';
 
 @Table({
@@ -8,11 +15,12 @@ import { Property } from '../../property/entities/property.entity';
 })
 export class Dealer extends Model {
   @Column({
-    type: DataType.STRING(50),
+    type: DataType.INTEGER,
     primaryKey: true,
-    unique: true,
+    autoIncrement: true,
+    allowNull: false,
   })
-  dealerID: string;
+  dealerID: number;
 
   @Column({
     type: DataType.STRING(100),

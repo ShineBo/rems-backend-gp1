@@ -1,4 +1,3 @@
-// src/dealer/dealer.controller.ts
 import {
   Controller,
   Get,
@@ -7,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { DealerService } from './dealer.service';
 import { CreateDealerDto } from './dto/create-dealer.dto';
@@ -28,20 +28,20 @@ export class DealerController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Dealer> {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<Dealer> {
     return this.dealerService.findOne(id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateDealerDto: UpdateDealerDto,
   ): Promise<Dealer> {
     return this.dealerService.update(id, updateDealerDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<void> {
+  remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.dealerService.remove(id);
   }
 }

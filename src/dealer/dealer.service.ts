@@ -1,9 +1,9 @@
-// src/dealer/dealer.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Dealer } from './entities/dealer.entity';
 import { CreateDealerDto } from './dto/create-dealer.dto';
 import { UpdateDealerDto } from './dto/update-dealer.dto';
+import { Property } from '../property/entities/property.entity';
 
 @Injectable()
 export class DealerService {
@@ -13,16 +13,28 @@ export class DealerService {
   ) {}
 
   async create(createDealerDto: CreateDealerDto): Promise<Dealer> {
-    return this.dealerModel.create({ ...createDealerDto });
+    // Process the profile photo if it's a string
+    if (typeof createDealerDto.profilePhoto === 'string') {
+      createDealerDto.profilePhoto = Buffer.from(
+        createDealerDto.profilePhoto.replace(/^data:image\/\w+;base64,/, ''),
+        'base64',
+      );
+    }
+  
+    // Fix: Use type assertion to tell TypeScript this is a valid input
+    return this.dealerModel.create(createDealerDto as any);
   }
 
   async findAll(): Promise<Dealer[]> {
-    return this.dealerModel.findAll();
+    return this.dealerModel.findAll({
+      include: [Property], // Include associated properties
+    });
   }
 
-  async findOne(dealerID: string): Promise<Dealer> {
+  async findOne(dealerID: number): Promise<Dealer> {
     const dealer = await this.dealerModel.findOne({
       where: { dealerID },
+      include: [Property], // Include associated properties
     });
 
     if (!dealer) {
@@ -33,16 +45,26 @@ export class DealerService {
   }
 
   async update(
-    dealerID: string,
+    dealerID: number,
     updateDealerDto: UpdateDealerDto,
   ): Promise<Dealer> {
     const dealer = await this.findOne(dealerID);
 
-    await dealer.update(updateDealerDto);
+    if (
+      updateDealerDto.profilePhoto &&
+      typeof updateDealerDto.profilePhoto === 'string'
+    ) {
+      updateDealerDto.profilePhoto = Buffer.from(
+        updateDealerDto.profilePhoto.replace(/^data:image\/\w+;base64,/, ''),
+        'base64',
+      );
+    }
+
+    await dealer.update(updateDealerDto as any);
     return dealer;
   }
 
-  async remove(dealerID: string): Promise<void> {
+  async remove(dealerID: number): Promise<void> {
     const dealer = await this.findOne(dealerID);
     await dealer.destroy();
   }
