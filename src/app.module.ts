@@ -4,6 +4,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { DealerModule } from './dealer/dealer.module';
 import { BuyerModule } from './buyer/buyer.module';
 import { PropertyModule } from './property/property.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PropertyModule } from './property/property.module';
     DealerModule,
     BuyerModule,
     PropertyModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

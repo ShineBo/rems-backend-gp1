@@ -20,10 +20,25 @@ export class DealerService {
         'base64',
       );
     }
-  
+
     // Fix: Use type assertion to tell TypeScript this is a valid input
     return this.dealerModel.create(createDealerDto as any);
   }
+
+  // Find dealer by ID 
+  async findById(dealerID: number): Promise<Dealer | null> {
+    return this.dealerModel.findByPk(dealerID);
+  }
+
+  // Find dealer by email
+  async findByEmail(email: string): Promise<Dealer | null> {
+    return this.dealerModel.findOne({
+      where: {
+        email,
+      },
+    });
+  }
+
 
   async findAll(): Promise<Dealer[]> {
     return this.dealerModel.findAll({

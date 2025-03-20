@@ -32,6 +32,20 @@ export class BuyerService {
     return buyer;
   }
 
+  // Find buyer by ID
+  async findById(buyerID: number): Promise<Buyer | null> {
+    return this.buyerModel.findByPk(buyerID);
+  }
+
+  // Find buyer by email
+  async findByEmail(email: string): Promise<Buyer | null> {
+    return this.buyerModel.findOne({
+      where: {
+        email,
+      },
+    });
+  }
+
   async update(
     buyerID: string,
     updateBuyerDto: UpdateBuyerDto,
