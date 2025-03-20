@@ -1,9 +1,14 @@
 // src/buyer/buyer.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Buyer } from './entities/buyer.entity';
 import { CreateBuyerDto } from './dto/create-buyer.dto';
 import { UpdateBuyerDto } from './dto/update-buyer.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class BuyerService {
@@ -13,7 +18,27 @@ export class BuyerService {
   ) {}
 
   async create(createBuyerDto: CreateBuyerDto): Promise<Buyer> {
-    return this.buyerModel.create({ ...createBuyerDto });
+    const checkEmail = await this.buyerModel.findOne({
+      where: { email: createBuyerDto.email },
+    });
+    if (checkEmail) {
+      throw new BadRequestException(
+        'This email is already in use! Please use another.',
+      );
+    }
+    const checkPhone = await this.buyerModel.findOne({
+      where: { phoneNumber: createBuyerDto.phoneNumber },
+    });
+    if (checkPhone) {
+      throw new BadRequestException(
+        'This phone number is already in use! Please use another.',
+      );
+    }
+    const hashedPswrd = await bcrypt.hash(createBuyerDto.password, 10);
+    return this.buyerModel.create({
+      ...createBuyerDto,
+      password: hashedPswrd,
+    });
   }
 
   async findAll(): Promise<Buyer[]> {
@@ -51,6 +76,10 @@ export class BuyerService {
     updateBuyerDto: UpdateBuyerDto,
   ): Promise<Buyer> {
     const buyer = await this.findOne(buyerID);
+
+    if (updateBuyerDto.password) {
+      updateBuyerDto.password = await bcrypt.hash(updateBuyerDto.password, 10);
+    }
 
     await buyer.update(updateBuyerDto);
     return buyer;

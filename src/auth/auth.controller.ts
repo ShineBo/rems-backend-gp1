@@ -9,11 +9,11 @@ export class AuthController {
 
   @Post('buyer/login')
   async buyerLogin(@Body() loginDto: LoginDto) {
-    return this.authService.loginBuyer(loginDto);
+    return await this.authService.loginBuyer(loginDto);
   }
 
   @Post('dealer/login')
   async dealerLogin(@Body() loginDto: LoginDto) {
-    return this.authService.loginDealer(loginDto);
+    return await this.authService.loginDealer(loginDto);
   }
 }

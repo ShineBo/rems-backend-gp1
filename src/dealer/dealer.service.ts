@@ -4,6 +4,7 @@ import { Dealer } from './entities/dealer.entity';
 import { CreateDealerDto } from './dto/create-dealer.dto';
 import { UpdateDealerDto } from './dto/update-dealer.dto';
 import { Property } from '../property/entities/property.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class DealerService {
@@ -13,7 +14,13 @@ export class DealerService {
   ) {}
 
   async create(createDealerDto: CreateDealerDto): Promise<Dealer> {
-    // Process the profile photo if it's a string
+    // Hash the password before storing it
+    if (createDealerDto.password) {
+      const hashedpswrd = await bcrypt.hash(createDealerDto.password, 10);
+      createDealerDto.password = hashedpswrd;
+    }
+
+    // Process profile photo if it's a string
     if (typeof createDealerDto.profilePhoto === 'string') {
       createDealerDto.profilePhoto = Buffer.from(
         createDealerDto.profilePhoto.replace(/^data:image\/\w+;base64,/, ''),
@@ -21,11 +28,11 @@ export class DealerService {
       );
     }
 
-    // Fix: Use type assertion to tell TypeScript this is a valid input
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.dealerModel.create(createDealerDto as any);
   }
 
-  // Find dealer by ID 
+  // Find dealer by ID
   async findById(dealerID: number): Promise<Dealer | null> {
     return this.dealerModel.findByPk(dealerID);
   }
@@ -38,7 +45,6 @@ export class DealerService {
       },
     });
   }
-
 
   async findAll(): Promise<Dealer[]> {
     return this.dealerModel.findAll({
@@ -65,6 +71,14 @@ export class DealerService {
   ): Promise<Dealer> {
     const dealer = await this.findOne(dealerID);
 
+    // Hash the new password before updating
+    if (updateDealerDto.password) {
+      updateDealerDto.password = await bcrypt.hash(
+        updateDealerDto.password,
+        10,
+      );
+    }
+
     if (
       updateDealerDto.profilePhoto &&
       typeof updateDealerDto.profilePhoto === 'string'
@@ -75,6 +89,7 @@ export class DealerService {
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await dealer.update(updateDealerDto as any);
     return dealer;
   }

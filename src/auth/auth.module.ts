@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 // src/auth/auth.module.ts
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // src/auth/auth.service.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -23,7 +25,7 @@ export class AuthService {
     // In a real app, you should hash passwords before storing them
     // This assumes plain text passwords for simplicity
     // Replace with bcrypt.compare(password, buyer.password) for hashed passwords
-    const isPasswordValid = password === buyer.password;
+    const isPasswordValid = await bcrypt.compare(password, buyer.password);
     if (!isPasswordValid) {
       return null;
     }
@@ -40,7 +42,7 @@ export class AuthService {
     // In a real app, you should hash passwords before storing them
     // This assumes plain text passwords for simplicity
     // Replace with bcrypt.compare(password, dealer.password) for hashed passwords
-    const isPasswordValid = password === dealer.password;
+    const isPasswordValid = await bcrypt.compare(password, dealer.password);
     if (!isPasswordValid) {
       return null;
     }
