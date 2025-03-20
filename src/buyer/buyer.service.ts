@@ -77,6 +77,15 @@ export class BuyerService {
   ): Promise<Buyer> {
     const buyer = await this.findOne(buyerID);
 
+    const checkPhone = await this.buyerModel.findOne({
+      where: { phoneNumber: updateBuyerDto.phoneNumber },
+    });
+    if (checkPhone) {
+      throw new BadRequestException(
+        'This phone number is already in use! Please use another.',
+      );
+    }
+
     if (updateBuyerDto.password) {
       updateBuyerDto.password = await bcrypt.hash(updateBuyerDto.password, 10);
     }
@@ -85,8 +94,9 @@ export class BuyerService {
     return buyer;
   }
 
-  async remove(buyerID: string): Promise<void> {
-    const buyer = await this.findOne(buyerID);
-    await buyer.destroy();
+  async remove(buyerID: number) {
+    return await this.buyerModel.destroy({
+      where: { buyerID: buyerID },
+    });
   }
 }
