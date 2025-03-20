@@ -12,10 +12,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly buyerService: BuyerService,
     private readonly dealerService: DealerService,
   ) {
+    const secretKey = process.env.JWT_SECRET_KEY;
+
+    if (!secretKey) {
+      throw new Error('JWT_SECRET_KEY is not defined in environment variables');
+    }
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: 'your-secret-key', // Move this to environment variables in production
+      secretOrKey: secretKey,
     });
   }
 

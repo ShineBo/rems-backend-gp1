@@ -49,9 +49,28 @@ export class AuthService {
   }
 
   async loginBuyer(loginDto: LoginDto) {
-    const buyer = await this.validateBuyer(loginDto.email, loginDto.password);
+    console.log('Attempting to login buyer with email:', loginDto.email);
+    const buyer = await this.buyerService.findByEmail(loginDto.email);
+    console.log('Buyer found:', buyer ? 'yes' : 'no');
+
     if (!buyer) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials - user not found');
+    }
+
+    // Debug password comparison
+    console.log(
+      'Comparing passwords:',
+      loginDto.password,
+      'vs',
+      buyer.password,
+    );
+    const isPasswordValid = loginDto.password === buyer.password;
+    console.log('Password valid:', isPasswordValid);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException(
+        'Invalid credentials - password mismatch',
+      );
     }
 
     const payload = {
