@@ -9,6 +9,7 @@ import { Buyer } from './entities/buyer.entity';
 import { CreateBuyerDto } from './dto/create-buyer.dto';
 import { UpdateBuyerDto } from './dto/update-buyer.dto';
 import * as bcrypt from 'bcrypt';
+import { Op } from 'sequelize'; // Import Op for advanced operators
 
 @Injectable()
 export class BuyerService {
@@ -76,20 +77,29 @@ export class BuyerService {
     updateBuyerDto: UpdateBuyerDto,
   ): Promise<Buyer> {
     const buyer = await this.findOne(buyerID);
-
-    const checkPhone = await this.buyerModel.findOne({
-      where: { phoneNumber: updateBuyerDto.phoneNumber },
-    });
-    if (checkPhone) {
-      throw new BadRequestException(
-        'This phone number is already in use! Please use another.',
-      );
+    
+    // Only check for phone number uniqueness if the phone number is being updated
+    if (updateBuyerDto.phoneNumber && updateBuyerDto.phoneNumber !== buyer.phoneNumber) {
+      const checkPhone = await this.buyerModel.findOne({
+        where: { 
+          phoneNumber: updateBuyerDto.phoneNumber,
+          buyerID: { [Op.ne]: buyer.buyerID } // Exclude the current buyer
+        },
+      });
+      
+      if (checkPhone) {
+        throw new BadRequestException(
+          'This phone number is already in use! Please use another.',
+        );
+      }
     }
 
+    // Handle password hashing if provided
     if (updateBuyerDto.password) {
       updateBuyerDto.password = await bcrypt.hash(updateBuyerDto.password, 10);
     }
 
+    // Update buyer data
     await buyer.update(updateBuyerDto);
     return buyer;
   }
