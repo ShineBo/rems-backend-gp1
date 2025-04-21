@@ -16,7 +16,7 @@ import { Property } from './entities/property.entity';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('property')
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 export class PropertyController {
   constructor(private readonly propertyService: PropertyService) {}
 

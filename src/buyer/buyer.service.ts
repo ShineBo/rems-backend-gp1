@@ -9,7 +9,7 @@ import { Buyer } from './entities/buyer.entity';
 import { CreateBuyerDto } from './dto/create-buyer.dto';
 import { UpdateBuyerDto } from './dto/update-buyer.dto';
 import * as bcrypt from 'bcrypt';
-import { Op } from 'sequelize'; // Import Op for advanced operators
+import { Op } from 'sequelize';
 
 @Injectable()
 export class BuyerService {
@@ -76,31 +76,60 @@ export class BuyerService {
     buyerID: string,
     updateBuyerDto: UpdateBuyerDto,
   ): Promise<Buyer> {
+    // Find the buyer first
     const buyer = await this.findOne(buyerID);
-    
-    // Only check for phone number uniqueness if the phone number is being updated
-    if (updateBuyerDto.phoneNumber && updateBuyerDto.phoneNumber !== buyer.phoneNumber) {
-      const checkPhone = await this.buyerModel.findOne({
-        where: { 
-          phoneNumber: updateBuyerDto.phoneNumber,
-          buyerID: { [Op.ne]: buyer.buyerID } // Exclude the current buyer
-        },
-      });
-      
-      if (checkPhone) {
-        throw new BadRequestException(
-          'This phone number is already in use! Please use another.',
-        );
+
+    // Create clean update object - only include fields that are provided
+    const updates: any = {};
+
+    // Handle name update
+    if (updateBuyerDto.buyerName !== undefined) {
+      updates.buyerName = updateBuyerDto.buyerName;
+    }
+
+    // Handle phone number update - Only check uniqueness if it's being changed
+    if (updateBuyerDto.phoneNumber !== undefined) {
+      // Validate phoneNumber format first
+      if (!/^\d+$/.test(updateBuyerDto.phoneNumber)) {
+        throw new BadRequestException('Phone number must contain only numbers');
       }
+
+      // Only check for uniqueness if the number is actually different
+      if (updateBuyerDto.phoneNumber !== buyer.phoneNumber) {
+        const checkPhone = await this.buyerModel.findOne({
+          where: {
+            phoneNumber: updateBuyerDto.phoneNumber,
+            buyerID: { [Op.ne]: buyer.buyerID },
+          },
+        });
+
+        if (checkPhone) {
+          throw new BadRequestException(
+            'This phone number is already in use! Please use another.',
+          );
+        }
+      }
+
+      updates.phoneNumber = updateBuyerDto.phoneNumber;
     }
 
-    // Handle password hashing if provided
+    // Handle password update
     if (updateBuyerDto.password) {
-      updateBuyerDto.password = await bcrypt.hash(updateBuyerDto.password, 10);
+      updates.password = await bcrypt.hash(updateBuyerDto.password, 10);
     }
 
-    // Update buyer data
-    await buyer.update(updateBuyerDto);
+    // Handle profile photo update
+    if (updateBuyerDto.profilePhoto !== undefined) {
+      updates.profilePhoto = updateBuyerDto.profilePhoto;
+    }
+
+    // Check if there's anything to update
+    if (Object.keys(updates).length === 0) {
+      return buyer; // Return existing buyer if nothing to update
+    }
+
+    // Update and return the buyer
+    await buyer.update(updates);
     return buyer;
   }
 
