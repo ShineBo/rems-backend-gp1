@@ -14,6 +14,8 @@ import { Property } from '../../property/entities/property.entity';
   timestamps: true,
 })
 export class Dealer extends Model {
+  @PrimaryKey
+  @AutoIncrement
   @Column({
     type: DataType.INTEGER,
     primaryKey: true,
@@ -55,7 +57,7 @@ export class Dealer extends Model {
 
   @Column({
     type: DataType.BLOB,
-    allowNull: false,
+    allowNull: true,
   })
   profilePhoto: Buffer;
 
