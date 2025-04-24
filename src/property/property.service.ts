@@ -15,16 +15,21 @@ export class PropertyService {
   ) {}
 
   async create(createPropertyDto: CreatePropertyDto): Promise<Property> {
-    // Verify dealer exists before creating property
     await this.dealerService.findOne(createPropertyDto.dealerID);
 
-    return this.propertyModel.create({ ...createPropertyDto });
+    // Convert image if it's a base64 string
+    if (typeof createPropertyDto.propertyImages === 'string') {
+      createPropertyDto.propertyImages = Buffer.from(
+        createPropertyDto.propertyImages.replace(/^data:image\/\w+;base64,/, ''),
+        'base64',
+      );
+    }
+
+    return this.propertyModel.create(createPropertyDto as any);
   }
 
   async findAll(): Promise<Property[]> {
-    return this.propertyModel.findAll({
-      include: ['dealer'],
-    });
+    return this.propertyModel.findAll({ include: ['dealer'] });
   }
 
   async findOne(propertyID: string): Promise<Property> {
@@ -41,18 +46,21 @@ export class PropertyService {
   }
 
   async findByDealer(dealerID: number): Promise<Property[]> {
-    return this.propertyModel.findAll({
-      where: { dealerID },
-    });
+    return this.propertyModel.findAll({ where: { dealerID } });
   }
 
-  async update(
-    propertyID: string,
-    updatePropertyDto: UpdatePropertyDto,
-  ): Promise<Property> {
+  async update(propertyID: string, updatePropertyDto: UpdatePropertyDto): Promise<Property> {
     const property = await this.findOne(propertyID);
 
-    await property.update(updatePropertyDto);
+    // Handle image update
+    if (updatePropertyDto.propertyImages && typeof updatePropertyDto.propertyImages === 'string') {
+      updatePropertyDto.propertyImages = Buffer.from(
+        updatePropertyDto.propertyImages.replace(/^data:image\/\w+;base64,/, ''),
+        'base64',
+      );
+    }
+
+    await property.update(updatePropertyDto as any);
     return property;
   }
 

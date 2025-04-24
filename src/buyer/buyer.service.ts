@@ -27,6 +27,7 @@ export class BuyerService {
         'This email is already in use! Please use another.',
       );
     }
+
     const checkPhone = await this.buyerModel.findOne({
       where: { phoneNumber: createBuyerDto.phoneNumber },
     });
@@ -35,11 +36,18 @@ export class BuyerService {
         'This phone number is already in use! Please use another.',
       );
     }
-    const hashedPswrd = await bcrypt.hash(createBuyerDto.password, 10);
-    return this.buyerModel.create({
-      ...createBuyerDto,
-      password: hashedPswrd,
-    });
+
+    createBuyerDto.password = await bcrypt.hash(createBuyerDto.password, 10);
+
+    // Convert base64 profile photo
+    if (typeof createBuyerDto.profilePhoto === 'string') {
+      createBuyerDto.profilePhoto = Buffer.from(
+        createBuyerDto.profilePhoto.replace(/^data:image\/\w+;base64,/, ''),
+        'base64',
+      );
+    }
+
+    return this.buyerModel.create(createBuyerDto as any);
   }
 
   async findAll(): Promise<Buyer[]> {
@@ -47,54 +55,35 @@ export class BuyerService {
   }
 
   async findOne(buyerID: string): Promise<Buyer> {
-    const buyer = await this.buyerModel.findOne({
-      where: { buyerID },
-    });
-
-    if (!buyer) {
+    const buyer = await this.buyerModel.findOne({ where: { buyerID } });
+    if (!buyer)
       throw new NotFoundException(`Buyer with ID "${buyerID}" not found`);
-    }
-
     return buyer;
   }
 
-  // Find buyer by ID
   async findById(buyerID: number): Promise<Buyer | null> {
     return this.buyerModel.findByPk(buyerID);
   }
 
-  // Find buyer by email
   async findByEmail(email: string): Promise<Buyer | null> {
-    return this.buyerModel.findOne({
-      where: {
-        email,
-      },
-    });
+    return this.buyerModel.findOne({ where: { email } });
   }
 
   async update(
     buyerID: string,
     updateBuyerDto: UpdateBuyerDto,
   ): Promise<Buyer> {
-    // Find the buyer first
     const buyer = await this.findOne(buyerID);
-
-    // Create clean update object - only include fields that are provided
     const updates: any = {};
 
-    // Handle name update
-    if (updateBuyerDto.buyerName !== undefined) {
+    if (updateBuyerDto.buyerName !== undefined)
       updates.buyerName = updateBuyerDto.buyerName;
-    }
 
-    // Handle phone number update - Only check uniqueness if it's being changed
     if (updateBuyerDto.phoneNumber !== undefined) {
-      // Validate phoneNumber format first
       if (!/^\d+$/.test(updateBuyerDto.phoneNumber)) {
         throw new BadRequestException('Phone number must contain only numbers');
       }
 
-      // Only check for uniqueness if the number is actually different
       if (updateBuyerDto.phoneNumber !== buyer.phoneNumber) {
         const checkPhone = await this.buyerModel.findOne({
           where: {
@@ -102,7 +91,6 @@ export class BuyerService {
             buyerID: { [Op.ne]: buyer.buyerID },
           },
         });
-
         if (checkPhone) {
           throw new BadRequestException(
             'This phone number is already in use! Please use another.',
@@ -113,29 +101,27 @@ export class BuyerService {
       updates.phoneNumber = updateBuyerDto.phoneNumber;
     }
 
-    // Handle password update
     if (updateBuyerDto.password) {
       updates.password = await bcrypt.hash(updateBuyerDto.password, 10);
     }
 
-    // Handle profile photo update
-    if (updateBuyerDto.profilePhoto !== undefined) {
-      updates.profilePhoto = updateBuyerDto.profilePhoto;
+    if (
+      updateBuyerDto.profilePhoto &&
+      typeof updateBuyerDto.profilePhoto === 'string'
+    ) {
+      updates.profilePhoto = Buffer.from(
+        updateBuyerDto.profilePhoto.replace(/^data:image\/\w+;base64,/, ''),
+        'base64',
+      );
     }
 
-    // Check if there's anything to update
-    if (Object.keys(updates).length === 0) {
-      return buyer; // Return existing buyer if nothing to update
-    }
+    if (Object.keys(updates).length === 0) return buyer;
 
-    // Update and return the buyer
     await buyer.update(updates);
     return buyer;
   }
 
   async remove(buyerID: number) {
-    return await this.buyerModel.destroy({
-      where: { buyerID: buyerID },
-    });
+    return await this.buyerModel.destroy({ where: { buyerID } });
   }
 }

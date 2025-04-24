@@ -23,5 +23,5 @@ export class CreateBuyerDto {
   phoneNumber: string;
 
   @IsOptional()
-  profilePhoto?: Buffer;
+  profilePhoto: string | Buffer;
 }

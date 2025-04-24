@@ -1,7 +1,8 @@
+// create-property.dto.ts
 export class CreatePropertyDto {
   propertyTitle: string;
   propertyType: string;
-  propertyImages?: Buffer;
+  propertyImages?: string | Buffer;
   description: string;
   price: number;
   location: string;
